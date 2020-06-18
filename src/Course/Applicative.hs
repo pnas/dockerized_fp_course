@@ -384,7 +384,7 @@ filtering p =
   foldRight
     (\a ->
       lift2
-        (\b -> ifThenElse b (a:.) id)
+        (\b -> ifThenElse b (a :.) id)
         (p a))
     (pure Nil)
 
