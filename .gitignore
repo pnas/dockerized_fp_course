@@ -19,6 +19,9 @@ cabal.project.local
 # Intellij IDEA
 /.idea
 
+# VSCODE IDEA
+/.vscode
+
 # darcs
 /_darcs
 
