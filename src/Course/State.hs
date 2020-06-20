@@ -59,6 +59,7 @@ get ::
   State s s
 get =
   State (\s -> (s, s))
+  -- State (join (,))
   -- State ((,) <*> id)
 
 -- | A `State` where the resulting state is seeded with the given value.
@@ -69,8 +70,7 @@ put ::
   s
   -> State s ()
 put s =
-  State (\_ -> ((), s))
-  -- State (const ((), s))
+  State (const ((), s))
 
 -- | Implement the `Functor` instance for `State s`.
 --
@@ -81,10 +81,10 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  f <$> (State r) =
+  f <$> State r =
     State
-      (\s -> 
-        let 
+      (\s ->
+        let
           (a, s') = r s
         in
           (f a, s'))
@@ -164,7 +164,7 @@ findM _ Nil = pure Empty
 findM f (a :. t) =
   f a >>=
     \isFound ->
-      if isFound 
+      if isFound
         then
           pure (Full a)
         else
@@ -193,7 +193,6 @@ firstRepeat list =
             )
       list)
       S.empty
-   
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -245,10 +244,9 @@ isHappy ::
 isHappy =
   contains 1
   . firstRepeat
-  . produce 
+  . produce
     ( toInteger
     . sum
     . map (join (*) . digitToInt)
     . show'
     )
-  
