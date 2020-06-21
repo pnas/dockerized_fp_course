@@ -181,18 +181,16 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat list =
-  eval
-    (findM
-      (\elm ->
-          State
-            (\uniques ->
-              ( S.member elm uniques
-              , S.insert elm uniques
-              ))
-            )
-      list)
-      S.empty
+firstRepeat =
+  let 
+    insertAndCheckMembership elm =
+      State
+        (\uniques ->
+          ( S.member elm uniques
+          , S.insert elm uniques
+          ))
+  in 
+    (`eval` S.empty) . findM insertAndCheckMembership
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -204,18 +202,16 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct list =
-  eval
-    (filtering
-      (\elm ->
-          State
-            (\uniques ->
-              ( S.notMember elm uniques
-              , S.insert elm uniques
-              ))
-            )
-      list)
-      S.empty
+distinct =
+  let
+    insertAndCheckNotMembership elm =
+      State
+          (\uniques ->
+            ( S.notMember elm uniques
+            , S.insert elm uniques
+            ))
+  in
+    (`eval` S.empty) . filtering insertAndCheckNotMembership
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
