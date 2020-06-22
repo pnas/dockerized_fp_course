@@ -70,7 +70,9 @@ put ::
   s
   -> State s ()
 put s =
-  State (const ((), s))
+  State $ const ((), s)
+  -- put s =
+  --  State (\_ -> ((), s))
 
 -- | Implement the `Functor` instance for `State s`.
 --
@@ -82,12 +84,12 @@ instance Functor (State s) where
     -> State s a
     -> State s b
   f <$> State r =
-    State
-      (\s ->
+    State $
+      \s ->
         let
           (a, s') = r s
         in
-          (f a, s'))
+          (f a, s')
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -110,13 +112,13 @@ instance Applicative (State s) where
     -> State s a
     -> State s b
   State rf <*> State r =
-    State
-      (\s ->
+    State $
+      \s ->
         let
           (f, s') = rf s
           (a, s'') = r s'
         in
-          (f a, s''))
+          (f a, s'')
 
 -- | Implement the `Monad` instance for `State s`.
 --
@@ -134,12 +136,12 @@ instance Monad (State s) where
     -> State s a
     -> State s b
   f =<< State r =
-    State
-      (\s ->
-          let
-            (a, s') = r s
-          in
-            runState (f a) s')
+    State $
+      \s ->
+        let
+          (a, s') = r s
+        in
+          runState (f a) s'
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -161,14 +163,28 @@ findM ::
   -> List a
   -> f (Optional a)
 findM _ Nil = pure Empty
-findM f (a :. t) =
-  f a >>=
+findM p (a :. t) =
+  p a >>=
     \isFound ->
       if isFound
         then
           pure (Full a)
         else
-          findM f t
+          findM p t
+
+-- | Utility function to help solve/implement the following functions
+-- @firstRepeat@ and @dinstinct@
+insertAndCheck ::
+  Ord a =>
+  (a -> S.Set a -> Bool)
+  -> a
+  -> State (S.Set a) Bool
+insertAndCheck check elm =
+  State $
+    \uniques ->
+      ( check elm uniques
+      , S.insert elm uniques
+      )
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -182,15 +198,8 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat =
-  let 
-    insertAndCheckMembership elm =
-      State
-        (\uniques ->
-          ( S.member elm uniques
-          , S.insert elm uniques
-          ))
-  in 
-    (`eval` S.empty) . findM insertAndCheckMembership
+  (`eval` S.empty)
+  . findM (insertAndCheck S.member)
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -203,15 +212,8 @@ distinct ::
   List a
   -> List a
 distinct =
-  let
-    insertAndCheckNotMembership elm =
-      State
-          (\uniques ->
-            ( S.notMember elm uniques
-            , S.insert elm uniques
-            ))
-  in
-    (`eval` S.empty) . filtering insertAndCheckNotMembership
+  (`eval` S.empty)
+  . filtering (insertAndCheck S.notMember)
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
