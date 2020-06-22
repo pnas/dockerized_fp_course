@@ -51,8 +51,10 @@ instance Extend List where
     (List a -> b)
     -> List a
     -> List b
-  f <<= l =
-    map f $ take (length l) $ produce (drop 1) l
+  (<<=) f =
+    map f
+    . takeWhile (not . isEmpty)
+    . produce (drop 1)
 
 -- | Implement the @Extend@ instance for @Optional@.
 --
@@ -66,9 +68,8 @@ instance Extend Optional where
     (Optional a -> b)
     -> Optional a
     -> Optional b
-  _ <<= Empty = Empty
-  f <<= oa =
-    Full $ f oa
+  (<<=) f =
+    (f . Full <$>)
 
 -- | Duplicate the functor using extension.
 --
