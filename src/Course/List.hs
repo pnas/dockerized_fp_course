@@ -270,10 +270,41 @@ flattenAgain =
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional Nil = Full Nil
-seqOptional (Empty :. _) = Empty
-seqOptional (Full a :. t) =
-  case seqOptional t of
+seqOptional =
+  foldRight
+    (\oa ob ->
+      case oa of 
+        Empty -> Empty
+        (Full a) ->
+          case ob of
+            Empty -> Empty
+            (Full r) -> Full (a :. r))
+    (Full Nil)
+
+-- Explain why the following solution does not work
+seqOptional' ::
+  List (Optional t)
+  -> Optional (List t)
+seqOptional' =
+  foldRight
+    (\oa ob -> 
+      case ob of
+        Empty -> Empty
+        (Full r) -> 
+          case oa of
+            Empty -> Empty
+            (Full a) -> 
+              Full (a :. r))
+    (Full Nil)
+
+-- see this and above implementation and notice laziness in both
+seqOptional'' ::
+  List (Optional t)
+  -> Optional (List t)
+seqOptional'' Nil = Full Nil
+seqOptional'' (Empty :. _) = Empty
+seqOptional'' (Full a :. t) =
+  case seqOptional'' t of
     Empty -> Empty
     Full t' -> Full (a :. t')
 
@@ -374,7 +405,7 @@ produce f a =
 notReverse ::
   List a
   -> List a
-notReverse = id . id
+notReverse = id
 
 ---- End of list exercises
 
