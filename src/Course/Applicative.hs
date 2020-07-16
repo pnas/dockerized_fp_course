@@ -52,8 +52,8 @@ instance Applicative ExactlyOne where
     ExactlyOne (a -> b)
     -> ExactlyOne a
     -> ExactlyOne b
-  (<*>) (ExactlyOne f) =
-    (f <$>) 
+  (<*>) =
+    (<$>) . runExactlyOne 
 
 -- | Insert into a List.
 --
@@ -71,7 +71,7 @@ instance Applicative List where
     List (a -> b)
     -> List a
     -> List b
-  (<*>) fs as =
+  fs <*> as =
     flatMap (<$> as) fs
 
 -- | Insert into an Optional.
@@ -156,7 +156,7 @@ lift2 ::
   -> k b
   -> k c
 lift2 f a =
-  (lift1 f a <*>)
+  (f <$> a <*>)
 
 -- | Apply a ternary function in the environment.
 -- /can be written using `lift2` and `(<*>)`./

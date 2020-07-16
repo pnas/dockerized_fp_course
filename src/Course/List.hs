@@ -272,6 +272,14 @@ seqOptional ::
   -> Optional (List a)
 seqOptional =
   foldRight
+    (applyOptional . mapOptional (:.))
+    (Full Nil)
+
+seqOptional' ::
+  List (Optional a)
+  -> Optional (List a)
+seqOptional' =
+  foldRight
     (\oa ob ->
       case oa of 
         Empty -> Empty
@@ -282,10 +290,10 @@ seqOptional =
     (Full Nil)
 
 -- Explain why the following solution does not work
-seqOptional' ::
+seqOptional'' ::
   List (Optional t)
   -> Optional (List t)
-seqOptional' =
+seqOptional'' =
   foldRight
     (\oa ob -> 
       case ob of
@@ -298,12 +306,12 @@ seqOptional' =
     (Full Nil)
 
 -- see this and above implementation and notice laziness in both
-seqOptional'' ::
+seqOptional''' ::
   List (Optional t)
   -> Optional (List t)
-seqOptional'' Nil = Full Nil
-seqOptional'' (Empty :. _) = Empty
-seqOptional'' (Full a :. t) =
+seqOptional''' Nil = Full Nil
+seqOptional''' (Empty :. _) = Empty
+seqOptional''' (Full a :. t) =
   case seqOptional'' t of
     Empty -> Empty
     Full t' -> Full (a :. t')
