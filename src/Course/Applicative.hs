@@ -249,8 +249,10 @@ lift1 ::
   (a -> b)
   -> k a
   -> k b
-lift1 =
-  (<$>)
+-- lift1 =
+  -- (<$>)
+lift1 f =
+  (lift0 f <*>)
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
