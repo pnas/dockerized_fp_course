@@ -111,8 +111,8 @@ instance Monad ((->) t) where
   k (a -> b)
   -> k a
   -> k b
-(<**>) =
-  (<*>)
+kf <**> ka =
+  (<$> ka) =<< kf
 
 infixl 4 <**>
 
